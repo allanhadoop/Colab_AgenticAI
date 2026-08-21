@@ -13,6 +13,8 @@ https://colab.research.google.com/drive/1KSMxOCprsl1QRpt_Rq0UqCAyMtPqDQYx?usp=sh
 Access llama 3.1 base model from Meta approval  - https://huggingface.co/meta-llama/Llama-3.1-8B
 There are chat or instruct variant of the model too ("meta-llama/Meta-Llama-3.1-8B-Instruct") - So they are built to consider prompts and chat utility (apply_chat_template) to take inout from list of dictionary to convert to special tokens.
 
+Similarly get access to Google Gemma model from - https://huggingface.co/google/gemma-3-270m-it
+
 ------------Other models 
 PHI4 = "microsoft/Phi-4-mini-instruct"
 DEEPSEEK = "deepseek-ai/DeepSeek-V3.1"
@@ -57,3 +59,13 @@ https://huggingface.co/docs/diffusers/en/api/pipelines/overview
 --------------------Tokenizer-----------------
 1. Tokenizer translate text into chunk of words called Tokens and it is assigned to id called token ID
 2. Tokenizer has a vocab (database of tokens and special tokens (for eg. start of prompt -- this will inform model that prompt started)) -- Check excercise under Tokenizer folder 
+
+Quantization is a way of making an AI model smaller and faster by storing its numbers with less precision. Quantization = reducing the number of digits used to store the model's numbers, so the model needs less memory. E.g. 0.73849217 Instead of storing it with lots of precision, quantization might store an approximation: 0.74 You've lost a little precision, but you save memory.
+
+BitsAndBytesConfig is basically a set of instructions you give Hugging Face for how you want to quantize a model. Its like a "compression settings" object for your AI model.
+
+quant_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",  # NF4 stands for NormalFloat 4-bit. In simple terms, it is a smart way of doing 4-bit quantization, especially designed for neural-network/LLM weights.
+    bnb_4bit_compute_dtype="float16"
+)

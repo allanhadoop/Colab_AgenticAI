@@ -1,0 +1,72 @@
+# Model structure is classified into 3 sections as follows between Embedding and Head
+# Example sentence - Kevin and Jack were playing football. Kevin fell down, but he continued walking.
+# https://chatgpt.com/canvas/shared/680cbea6de688191a20f350a2293c76b
+
+
+1. LlamaAttention   #This is attention layer
+    a. q_proj = Query 
+    b. k_proj = Key 
+    c. v_proj = Value
+    d. o_proj = output 
+2. LlamaMLP
+3. LlamaRMSNorm
+
+----------------------Attention layer with q, k, v, and o-----------------------
+| Component      | Simple meaning                                       |
+| -------------- | ---------------------------------------------------- |
+| **Q (Query)**  | 🔎 What am I looking for?                            |
+| **K (Key)**    | 🔑 What information do I contain?                    |
+| **V (Value)**  | 📦 What information can I provide?                   |
+| **O (Output)** | 🔄 Transform the attention result for the next stage |
+
+If Attention is the part that helps Llama decide "which information is important?",
+the MLP is the part that helps the model process and transform that information.
+
+# "Kevin scored a goal because he was close to the goal."
+
+MLP = process that information and learn patterns
+
+| Component         | Simplified meaning                                                                                      | Simple example                                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **gate_proj**     | **Controls what information should pass through strongly or weakly.** Think of it as a **gate/filter**. | If the model sees **“EGFR mutation”**, the gate can help increase the importance of information related to that pattern. |
+| **up_proj**       | **Expands the information into a larger space** so the model has more room to process complex patterns. | Converts **2,048 numbers → 8,192 numbers** so the model can work with a richer representation.                           |
+| **down_proj**     | **Compresses the processed information back** to the model's normal size.                               | Converts **8,192 numbers → 2,048 numbers** so the result can go to the next layer.                                       |
+| **act_fn (SiLU)** | **This is math function (smooth volume control) helps a neural network handle info. in a non-linear way | A useful signal might be strengthened while a less useful signal is reduced.  see table below                                           |
+
+More info on SiLU Function -- 
+| Signal                | Before SiLU | After SiLU | Simple interpretation              |
+| --------------------- | ----------: | ---------: | ---------------------------------- |
+| EGFR-related signal   |     **2.0** |   **1.76** | Strong signal → largely preserved  |
+| Weak/unrelated signal |    **-2.0** |  **-0.24** | Negative signal → strongly reduced |
+| Small signal          |     **0.2** |   **0.11** | Small contribution → remains small |
+
+
+
+
+-------------------------------
+LlamaForCausalLM(
+  (model): LlamaModel(
+    (embed_tokens): Embedding(128256, 2048)
+    (layers): ModuleList(
+      (0-15): 16 x LlamaDecoderLayer(
+        (self_attn): LlamaAttention(
+          (q_proj): Linear4bit(in_features=2048, out_features=2048, bias=False)
+          (k_proj): Linear4bit(in_features=2048, out_features=512, bias=False)
+          (v_proj): Linear4bit(in_features=2048, out_features=512, bias=False)
+          (o_proj): Linear4bit(in_features=2048, out_features=2048, bias=False)
+        )
+        (mlp): LlamaMLP(
+          (gate_proj): Linear4bit(in_features=2048, out_features=8192, bias=False)
+          (up_proj): Linear4bit(in_features=2048, out_features=8192, bias=False)
+          (down_proj): Linear4bit(in_features=8192, out_features=2048, bias=False)
+          (act_fn): SiLUActivation()
+        )
+        (input_layernorm): LlamaRMSNorm((2048,), eps=1e-05)
+        (post_attention_layernorm): LlamaRMSNorm((2048,), eps=1e-05)
+      )
+    )
+    (norm): LlamaRMSNorm((2048,), eps=1e-05)
+    (rotary_emb): LlamaRotaryEmbedding()
+  )
+  (lm_head): Linear(in_features=2048, out_features=128256, bias=False)
+)
